@@ -20,23 +20,26 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AddLocation
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.rounded.LocationOn
-import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.*
 import com.example.androiddevchallenge.data.Puppy
 import com.example.androiddevchallenge.data.Repository
 import com.example.androiddevchallenge.ui.theme.MyTheme
@@ -46,64 +49,115 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MyTheme {
-                MyApp()
+                val navController = rememberNavController()
+                NavHost(navController = navController, startDestination = "list") {
+                    composable("list") { PuppiesList(Repository.getPuppies(), navController) }
+                    composable(
+                        route = "detail/{puppyId}",
+                        arguments = listOf(navArgument("puppyId") {
+                            type = NavType.IntType
+                        })
+                    ) { navBackStackEntry ->
+                        val puppyId = navBackStackEntry.arguments!!.getInt("puppyId")
+                        val puppy = Repository.getPuppies().first { it.id == puppyId }
+                        PuppyDetail(puppy, navController)
+                    }
+                }
             }
         }
     }
 }
 
-// Start building your app here!
-@Composable
-fun MyApp() {
-    Surface(color = MaterialTheme.colors.background) {
-        PuppiesList(puppies = Repository.getPuppies())
-    }
-}
 
 @Composable
-fun PuppiesList(puppies: List<Puppy>) {
+fun PuppiesList(puppies: List<Puppy>, navController: NavHostController?) {
     Column(modifier = Modifier.verticalScroll(state = ScrollState(0))) {
         puppies.forEach { puppy ->
-            PuppyItem(puppy = puppy)
+            PuppyItem(puppy = puppy, navController = navController)
         }
     }
 }
 
 @Composable
-fun PuppyItem(puppy: Puppy) {
+fun PuppyItem(puppy: Puppy, navController: NavHostController?) {
     Card(
         modifier =
         Modifier
             .padding(16.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable {
+                navController?.navigate("detail/${puppy.id}")
+            },
         elevation = 8.dp,
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(8.dp),
     ) {
         Row(
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(8.dp)
         ) {
-            Image(
-                painter = painterResource(id = puppy.imageId),
-                contentDescription = null,
-                modifier = Modifier
-                    .wrapContentSize()
-                    .size(72.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
-            Column(Modifier.padding(start = 16.dp)) {
-                Text(text = puppy.name, style = MaterialTheme.typography.h5)
-                Text(text = puppy.type)
-                Text(text = puppy.gender + ", " + puppy.age)
-                Row() {
-                    Icon(Icons.Rounded.LocationOn, contentDescription = "description")
-                    Text(text = puppy.distance)
+            PuppyImage(puppy, 72.dp)
+            PuppyContent(puppy)
+
+        }
+    }
+
+}
+
+@Composable
+private fun PuppyContent(puppy: Puppy) {
+    Column(Modifier.padding(start = 16.dp)) {
+        Text(text = puppy.name, style = MaterialTheme.typography.h5)
+        Text(text = puppy.type)
+        Text(text = puppy.gender + ", " + puppy.age)
+        Row() {
+            Icon(Icons.Rounded.LocationOn, contentDescription = "description")
+            Text(text = puppy.distance)
+        }
+
+    }
+}
+
+@Composable
+private fun PuppyImage(puppy: Puppy, imageSize: Dp) {
+    Image(
+        painter = painterResource(id = puppy.imageId),
+        contentDescription = puppy.name,
+        modifier = Modifier
+            .wrapContentSize()
+            .size(imageSize)
+            .clip(RoundedCornerShape(8.dp)),
+        contentScale = ContentScale.Crop
+    )
+}
+
+@Composable
+fun PuppyDetail(puppy: Puppy, navController: NavHostController) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "Puppy: ${puppy.name}") },
+                navigationIcon = {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "content description",
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .clickable {
+                                navController.navigateUp()
+                            },
+                    )
                 }
-
-            }
-
+            )
+        },
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            PuppyImage(puppy, 240.dp)
+            PuppyContent(puppy)
         }
     }
 
@@ -113,7 +167,7 @@ fun PuppyItem(puppy: Puppy) {
 @Composable
 fun LightPreview() {
     MyTheme {
-        MyApp()
+        PuppiesList(puppies = Repository.getPuppies(), null)
     }
 }
 
@@ -121,6 +175,6 @@ fun LightPreview() {
 @Composable
 fun DarkPreview() {
     MyTheme(darkTheme = true) {
-        MyApp()
+        PuppiesList(puppies = Repository.getPuppies(), null)
     }
 }

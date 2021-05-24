@@ -7,6 +7,7 @@ object Repository {
     fun getPuppies(): List<Puppy> {
         return listOf(
             Puppy(
+                0,
                 "Sparky",
                 "Golden Retriever",
                 "Female",
@@ -15,6 +16,7 @@ object Repository {
                 R.drawable.dog1
             ),
             Puppy(
+                1,
                 "Charlie",
                 "Boston Terrier",
                 "Male",
@@ -23,6 +25,7 @@ object Repository {
                 R.drawable.dog2
             ),
             Puppy(
+                2,
                 "Max",
                 "Siberian Husky",
                 "Male",
@@ -31,6 +34,7 @@ object Repository {
                 R.drawable.dog3
             ),
             Puppy(
+                3,
                 "Daisy",
                 "Maltese",
                 "Female",
@@ -39,6 +43,7 @@ object Repository {
                 R.drawable.dog4
             ),
             Puppy(
+                4,
                 "Zeo",
                 "Jack Russell Terrier",
                 "Male",
