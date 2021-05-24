@@ -21,12 +21,26 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material.Card
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,7 +53,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.compose.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.navArgument
+import androidx.navigation.compose.navigate
+import androidx.navigation.compose.rememberNavController
 import com.example.androiddevchallenge.data.Puppy
 import com.example.androiddevchallenge.data.Repository
 import com.example.androiddevchallenge.ui.theme.MyTheme
@@ -48,33 +66,56 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MyTheme {
-                val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "list") {
-                    composable("list") { PuppiesList(Repository.getPuppies(), navController) }
-                    composable(
-                        route = "detail/{puppyId}",
-                        arguments = listOf(navArgument("puppyId") {
-                            type = NavType.IntType
-                        })
-                    ) { navBackStackEntry ->
-                        val puppyId = navBackStackEntry.arguments!!.getInt("puppyId")
-                        val puppy = Repository.getPuppies().first { it.id == puppyId }
-                        PuppyDetail(puppy, navController)
-                    }
-                }
-            }
+            MyApp()
         }
     }
 }
 
+@Composable
+fun MyApp() {
+    MyTheme() {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "list") {
+            composable("list") { PuppiesList(Repository.getPuppies(), navController) }
+            composable(
+                route = "detail/{puppyId}",
+                arguments = listOf(navArgument("puppyId") {
+                    type = NavType.IntType
+                })
+            ) { navBackStackEntry ->
+                val puppyId = navBackStackEntry.arguments!!.getInt("puppyId")
+                val puppy = Repository.getPuppies().first { it.id == puppyId }
+                PuppyDetail(puppy, navController)
+            }
+        }
+
+    }
+}
 
 @Composable
 fun PuppiesList(puppies: List<Puppy>, navController: NavHostController?) {
-    Column(modifier = Modifier.verticalScroll(state = ScrollState(0))) {
-        puppies.forEach { puppy ->
-            PuppyItem(puppy = puppy, navController = navController)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "Puppy Adoption App") },
+                navigationIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = "Puppy Adoption App",
+                        modifier = Modifier
+                            .padding(16.dp)
+                    )
+                }
+            )
         }
+    ) {
+        LazyColumn(content = {
+            puppies.forEach { puppy ->
+                item {
+                    PuppyItem(puppy = puppy, navController = navController)
+                }
+            }
+        })
     }
 }
 
@@ -140,7 +181,7 @@ fun PuppyDetail(puppy: Puppy, navController: NavHostController) {
                 navigationIcon = {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "content description",
+                        contentDescription = "back",
                         modifier = Modifier
                             .padding(16.dp)
                             .clickable {
@@ -160,21 +201,16 @@ fun PuppyDetail(puppy: Puppy, navController: NavHostController) {
             PuppyContent(puppy)
         }
     }
-
 }
 
 @Preview("Light Theme", widthDp = 360, heightDp = 640)
 @Composable
 fun LightPreview() {
-    MyTheme {
-        PuppiesList(puppies = Repository.getPuppies(), null)
-    }
+    MyApp()
 }
 
 @Preview("Dark Theme", widthDp = 360, heightDp = 640)
 @Composable
 fun DarkPreview() {
-    MyTheme(darkTheme = true) {
-        PuppiesList(puppies = Repository.getPuppies(), null)
-    }
+    MyApp()
 }
