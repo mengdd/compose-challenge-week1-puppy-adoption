@@ -19,7 +19,6 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,7 +30,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -79,16 +77,17 @@ fun MyApp() {
             composable("list") { PuppiesList(Repository.getPuppies(), navController) }
             composable(
                 route = "detail/{puppyId}",
-                arguments = listOf(navArgument("puppyId") {
-                    type = NavType.IntType
-                })
+                arguments = listOf(
+                    navArgument("puppyId") {
+                        type = NavType.IntType
+                    }
+                )
             ) { navBackStackEntry ->
                 val puppyId = navBackStackEntry.arguments!!.getInt("puppyId")
                 val puppy = Repository.getPuppies().first { it.id == puppyId }
                 PuppyDetail(puppy, navController)
             }
         }
-
     }
 }
 
@@ -109,13 +108,15 @@ fun PuppiesList(puppies: List<Puppy>, navController: NavHostController?) {
             )
         }
     ) {
-        LazyColumn(content = {
-            puppies.forEach { puppy ->
-                item {
-                    PuppyItem(puppy = puppy, navController = navController)
+        LazyColumn(
+            content = {
+                puppies.forEach { puppy ->
+                    item {
+                        PuppyItem(puppy = puppy, navController = navController)
+                    }
                 }
             }
-        })
+        )
     }
 }
 
@@ -139,10 +140,8 @@ fun PuppyItem(puppy: Puppy, navController: NavHostController?) {
         ) {
             PuppyImage(puppy, 72.dp)
             PuppyContent(puppy)
-
         }
     }
-
 }
 
 @Composable
@@ -155,7 +154,6 @@ private fun PuppyContent(puppy: Puppy) {
             Icon(Icons.Rounded.LocationOn, contentDescription = "description")
             Text(text = puppy.distance)
         }
-
     }
 }
 
